@@ -203,21 +203,21 @@ param_grid = {
 ```{python include = FALSE}
 #| echo: false
 pd.options.mode.chained_assignment = None
-#rfr_cv = GridSearchCV(estimator=rfr, param_grid = param_grid, cv = 3,scoring = 'neg_mean_squared_error')
-#rfr_cv.fit(X_train, y_train.ravel())
+rfr_cv = GridSearchCV(estimator=rfr, param_grid = param_grid, cv = 3,scoring = 'neg_mean_squared_error')
+rfr_cv.fit(X_train, y_train.ravel())
 ```
 
 
 ```{python, echo = FALSE}
 #| echo: false
 pd.options.mode.chained_assignment = None
-#y_pred_cv = rfr_cv.predict(X_test)
+y_pred_cv = rfr_cv.predict(X_test)
 ```
 
 ```{python include = FALSE}
 #| echo: false
 pd.options.mode.chained_assignment = None
-#mean_squared_error(y_pred_cv,y_test)
+mean_squared_error(y_pred_cv,y_test)
 ```
 
 ```{python include = FALSE}
