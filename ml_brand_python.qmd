@@ -1,0 +1,262 @@
+---
+title: "Random Forest Model"
+author: "Nicolò Rizzitello"
+date: "31 October 2024"
+bibliography: citations.bib
+format: 
+  html:
+    toc: TRUE
+    toc-title: Contents
+    toc-location: left
+#jupyter: python3
+---
+## Abstract
+
+Machine learning methods differ from classical statistical approaches in that they use an algorithm to find the relationship between the response variable and predictors, rather than assuming a model and estimating its parameters from the data.
+
+## Introduction
+
+Among machine learning methods, the simplest models are regression trees. They are nonparametric in that they do not require any a priori assumptions about the distribution of the variable to be predicted. The Random forest algorithm is a supervised learning algorithm.  It represents a type of ensemble model that uses the decision tree as an individual model. The final result that the random forest algorithm returns is nothing more than the average of the numerical result returned by the different trees in the case of a regression problem. In this case,  the goal is to predict the rating variable with respect the explanatory variable.
+At the end, we will choose the best model through the use of MSE and we will see which are the most important variables associated to rating variable. 
+
+```{python, include = FALSE, echo=FALSE}
+#| echo: false
+import pandas as pd
+import seaborn as sns
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error 
+from sklearn.model_selection import GridSearchCV
+from sklearn.inspection import permutation_importance
+import matplotlib.pyplot as plt
+import numpy as np
+from numpy import mean
+from numpy import std
+
+from sklearn.utils import resample
+
+
+```
+
+## Dataset and goal
+In this case our data coming from two different datasets:  
+1. **Items**: this dataset is composed by 792 observations and 9 columns;  
+2. **Reviews**: this dataset is composed by 82815 observations and 8 columns;  
+Inside this two dataset there is the column *asin* that is and identify unique column. It's important to merge our two dataset in one.  
+Merging data we obtain one dataset composed by 82815 observations and 16 columns.  
+We will select columns that are important to achieve our goal that is to predict the column rating.
+
+| Column name | Description   | Type of Variable                                                    
+|-----------------------------|------------------|-------------------------|
+| **Total Reviews** | Total of reviews about that device | Covariate / Numeric
+| **Prices**| Device price | Covariate / Numeric
+| **Rating**  | Score Review | *Response* / Numeric
+| **Helpful Votes**  | Number of people that vote that review | Covariate / Numeric
+| **Brand**  | Device's Brand | Covariate / Categorical
+
+
+```{python include = FALSE}
+#| echo: false
+items=pd.read_csv("C:/Users/Nicola/Desktop/Nicola/portfolio/R_quarto/dash_brand/items.csv")
+reviews=pd.read_csv("C:/Users/Nicola/Desktop/Nicola/portfolio/R_quarto/dash_brand/reviews.csv")
+
+df = pd.merge(items, reviews, on='asin', how='inner')
+
+
+df_sub = df[['brand','rating_x','prices','helpfulVotes','totalReviews']]
+```
+
+
+
+
+## Pre-Processing
+
+The **pre-processing** phase is really important to create a good model to fit and predict our data. It prepares data for being injected into a training procedure of a model.   
+Models are lazy, they don't adapt to our data, they want our data to be shaped properly for them, for this reason it must be performed correctly.[@pre-proc]  
+It is important to identify the goal and then feed the model a dataset that is clean and ready to achieve that goal or goals.  
+Some common steps in data pre-processing include:   
+  1. **Cleaning-Data**: for example identify and fill data missing   
+  2. **Data-Transformation**: this involves converting the data into a suitable format for analysis   
+  3. **Data Reduction**: this involves reducing the size of the dataset while preserving the important information  
+  4. **Data Normalization** or **Scaling-Data**: this involves scaling the data to a common range, such as between 0 and 1 or -1 and 1.
+
+```{python, message = FALSE}
+#| echo: false
+pd.options.mode.chained_assignment = None
+missing_data = df_sub.isnull()
+for column in missing_data.columns.values.tolist():
+    print(column)
+    print(missing_data[column].value_counts())
+    print("")
+
+```
+
+
+
+```{python include = FALSE}
+#| echo: false
+pd.options.mode.chained_assignment = None
+df_sub['prices'] = df_sub['prices'].str.replace("$","") 
+df_sub['prices'] = pd.to_numeric(df_sub['prices'], errors='coerce')
+```
+
+```{python include = FALSE}
+#| echo: false
+pd.options.mode.chained_assignment = None
+sns.boxplot(x='helpfulVotes', y='brand', data=df_sub).set_title('Distribution of Votes by Brand')
+plt.show()
+```
+
+```{python include = FALSE}
+#| echo: false
+pd.options.mode.chained_assignment = None
+sns.boxplot(x='prices', y='brand', data=df_sub).set_title('Distribution of Prices by Brand')
+plt.show()
+```
+
+```{python include = FALSE}
+#| echo: false
+pd.options.mode.chained_assignment = None
+d_sub_med_p = df_sub.groupby('brand')['prices'].transform('median')
+df_sub['prices'].fillna(d_sub_med_p, inplace=True)
+```
+
+```{python include = FALSE}
+#| echo: false
+pd.options.mode.chained_assignment = None
+d_sub_med_v = df_sub.groupby('brand')['helpfulVotes'].transform('median')
+df_sub['helpfulVotes'].fillna(d_sub_med_v, inplace=True)
+```
+```{python include = FALSE}
+#| echo: false
+pd.options.mode.chained_assignment = None
+scale = StandardScaler()
+
+```
+
+```{python include = FALSE}
+#| echo: false
+pd.options.mode.chained_assignment = None
+df_sub_def = pd.get_dummies(df_sub, columns=['brand'])
+
+```
+
+### Results Pre-Pocessing
+As we can see there are some variables that contain missing value and some that need transformation. In particular,
+the variable *helpfulVotes* and *prices* have 49681 and 23670 rispectively missing value that need to fill and variable *brand* that is categorical, needs transformation to feed to the model. Let's fix this problems. 
+To check the distribution of the two variables we can use the boxplot.  
+As we can see, there are many outliers for brand, in this case it's correct replace missing value using median, that is the centerd value of distribution and it is not affected by outliers.  
+To fill missing value in *helpfulVotes* and *prices* we need to compute the median by brand for both variables and replace missing and we use code *get_dummies* to change the nature of the variable brand.  
+At this point we can go ahead and fit the model.
+
+## Fit the Model
+
+### Normalize the dataset
+Normalizzation transform a feature into another variable that lies in the 0-1 interval[@pre-proc].  
+It's important to normalize the dataset to have columns that are in the same scale.  
+It's time to create the covariates matrix and the response vector.
+
+```{python include = FALSE}
+#| echo: false
+pd.options.mode.chained_assignment = None
+X_features_def = np.array(df_sub_def.drop(columns = ['rating_x'],axis = 1).to_numpy())
+y_target_def = np.array(df_sub_def[['rating_x']].to_numpy())
+X_features_def = scale.fit_transform(X_features_def)
+y_target_def = scale.fit_transform(y_target_def)
+```
+
+### Random Forest
+Now that we have the dataset cleaned and seperate the response from the covariates, we can split the dataset into training and test set.  
+The training set is composed by the 75% of observations while the test set by the 25% of observations.
+
+```{python include = FALSE}
+#| echo: false
+pd.options.mode.chained_assignment = None
+X_train, X_test, y_train, y_test = train_test_split(X_features_def,y_target_def,test_size = 0.25, random_state = 1)
+rfr = RandomForestRegressor(random_state=13)
+rfr.fit(X_train,y_train)
+y_pred = rfr.predict(X_test)
+```
+
+
+```{python include = FALSE}
+#| echo: false
+pd.options.mode.chained_assignment = None
+mean_squared_error(y_pred,y_test)
+```
+
+```{python include = FALSE}
+#| echo: false
+pd.options.mode.chained_assignment = None
+param_grid = {
+  'n_estimators':[20,40,60],
+  'max_depth': [10,20,30],
+  'min_samples_split': [2,5,10],
+  'min_samples_leaf': [1,2,4]
+}
+```
+
+
+
+
+```{python include = FALSE}
+#| echo: false
+pd.options.mode.chained_assignment = None
+#rfr_cv = GridSearchCV(estimator=rfr, param_grid = param_grid, cv = 3,scoring = 'neg_mean_squared_error')
+#rfr_cv.fit(X_train, y_train.ravel())
+```
+
+
+```{python, echo = FALSE}
+#| echo: false
+pd.options.mode.chained_assignment = None
+#y_pred_cv = rfr_cv.predict(X_test)
+```
+
+```{python include = FALSE}
+#| echo: false
+pd.options.mode.chained_assignment = None
+#mean_squared_error(y_pred_cv,y_test)
+```
+
+```{python include = FALSE}
+#| echo: false
+pd.options.mode.chained_assignment = None
+
+X = df_sub_def.drop(columns = ['rating_x'],axis = 1)
+X.columns = X.columns.str.replace('brand_', '')
+importances = rfr.feature_importances_
+indices = np.argsort(importances)[::-1]
+names = [X.columns[i] for i in indices]
+
+
+plt.title("Feature Importances")
+plt.bar(range(X.shape[1]), importances[indices])
+plt.xticks(range(X.shape[1]), names, rotation = 90)
+plt.xlabel("Features")
+plt.ylabel("Importance")
+plt.show()
+```
+
+### Results
+We fit two models and looking for best model. We computed MSE as measure to choose best model. As we can see, after the application of the GridSearch, we obtain the best model.
+So the MSE is equal to 0.0054.  
+From the model we compute the importance of the variables.  
+The bar plot show us that the most important variables that influenced the rate are *prices* and *totalReviews* with a percentage closer to 40%.
+
+## References
+
+
+
+
+
+
+
+
+
+
+
+
+
+
