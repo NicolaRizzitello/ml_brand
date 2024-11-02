@@ -58,8 +58,8 @@ We will select columns that are important to achieve our goal that is to predict
 
 ```{python include = FALSE}
 #| echo: false
-items=pd.read_csv("C:/Users/Nicola/Desktop/Nicola/portfolio/R_quarto/dash_brand/items.csv")
-reviews=pd.read_csv("C:/Users/Nicola/Desktop/Nicola/portfolio/R_quarto/dash_brand/reviews.csv")
+items=pd.read_csv("items.csv")
+reviews=pd.read_csv("reviews.csv")
 
 df = pd.merge(items, reviews, on='asin', how='inner')
 
