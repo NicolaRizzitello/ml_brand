@@ -16,7 +16,12 @@ Machine learning methods differ from classical statistical approaches in that th
 
 ## Introduction
 
-Among machine learning methods, the simplest models are regression trees. They are nonparametric in that they do not require any a priori assumptions about the distribution of the variable to be predicted. The Random forest algorithm is a supervised learning algorithm.  It represents a type of ensemble model that uses the decision tree as an individual model. The final result that the random forest algorithm returns is nothing more than the average of the numerical result returned by the different trees in the case of a regression problem. In this case,  the goal is to predict the rating variable with respect the explanatory variable.
+Among machine learning methods, the simplest models are regression trees. 
+They are nonparametric in that they do not require any a priori assumptions about the distribution of the variable to be predicted. 
+The Random forest algorithm is a supervised learning algorithm.  
+It represents a type of ensemble model that uses the decision tree as an individual model. 
+The final result that the random forest algorithm returns is nothing more than the average of the numerical result returned by the different trees in the case of a regression problem. 
+In this case,  the goal is to predict the rating variable with respect the explanatory variable.
 At the end, we will choose the best model through the use of MSE and we will see which are the most important variables associated to rating variable. 
 
 ```{python, include = FALSE, echo=FALSE}
@@ -43,7 +48,8 @@ from sklearn.utils import resample
 In this case our data coming from two different datasets:  
 1. **Items**: this dataset is composed by 792 observations and 9 columns;  
 2. **Reviews**: this dataset is composed by 82815 observations and 8 columns;  
-Inside this two dataset there is the column *asin* that is and identify unique column. It's important to merge our two dataset in one.  
+Inside this two dataset there is the column *asin* that is and identify unique column. 
+It's important to merge our two dataset in one.  
 Merging data we obtain one dataset composed by 82815 observations and 16 columns.  
 We will select columns that are important to achieve our goal that is to predict the column rating.
 
@@ -72,7 +78,8 @@ df_sub = df[['brand','rating_x','prices','helpfulVotes','totalReviews']]
 
 ## Pre-Processing
 
-The **pre-processing** phase is really important to create a good model to fit and predict our data. It prepares data for being injected into a training procedure of a model.   
+The **pre-processing** phase is really important to create a good model to fit and predict our data. 
+It prepares data for being injected into a training procedure of a model.   
 Models are lazy, they don't adapt to our data, they want our data to be shaped properly for them, for this reason it must be performed correctly.[@pre-proc]  
 It is important to identify the goal and then feed the model a dataset that is clean and ready to achieve that goal or goals.  
 Some common steps in data pre-processing include:   
@@ -240,7 +247,8 @@ plt.show()
 ```
 
 ### Results
-We fit two models and looking for best model. We computed MSE as measure to choose best model. As we can see, after the application of the GridSearch, we obtain the best model.
+We fit two models and looking for best model. We computed MSE as measure to choose best model. 
+As we can see, after the application of the GridSearch, we obtain the best model.
 So the MSE is equal to 0.0054.  
 From the model we compute the importance of the variables.  
 The bar plot show us that the most important variables that influenced the rate are *prices* and *totalReviews* with a percentage closer to 40%.
