@@ -12,7 +12,9 @@ format:
 ---
 ## Abstract
 
-Machine learning methods differ from classical statistical approaches in that they use an algorithm to find the relationship between the response variable and predictors, rather than assuming a model and estimating its parameters from the data.
+Machine learning methods differ from classical statistical approaches 
+in that they use an algorithm to find the relationship between the response variable and predictors, 
+rather than assuming a model and estimating its parameters from the data.
 
 ## Introduction
 
