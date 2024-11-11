@@ -36,6 +36,7 @@ There are some phases to follow to predict the column rating. They are:
 - Pre-Processing
 - Normalize the dataset
 - Fit the model
+
 Inside this document you can see how to push citations and refrences inside the document also.
 
 Clone this repo and see the results!
