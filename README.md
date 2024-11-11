@@ -8,7 +8,7 @@
 
 
 
-### About the Dataset
+## About the Dataset
 
 In this case our data coming from two different datasets:  
 1. **Items**: this dataset is composed by 792 observations and 9 columns;  
