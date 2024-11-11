@@ -30,7 +30,7 @@ These are the columns:
 | **Brand**  | Device's Brand | Covariate / Categorical
 
 ---------------------------------------------------------
-### Phases
+## Phases
 
 There are some phases to follow to predict the column rating. They are:
 - Pre-Processing
